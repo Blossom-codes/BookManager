@@ -59,12 +59,13 @@ public class UserServiceImpl implements UserService {
                 claims.put("id", loggedUser.getId());
                 claims.put("authorities", List.of(loggedUser.getAuthorities()));
                 claims.put("email", loggedUser.getEmail());
-                claims.put("username", loggedUser.getEmail());
+                claims.put("username", loggedUser.getUsername());
                 claims.put("fullName", loggedUser.getFirstName() + " " + loggedUser.getLastName());
                 // Generate JWT token
                 final String token = jwtUtil.generateToken(userDetails, claims);
 
                 loginResponse.setUserId(loggedUser.getId());
+                loginResponse.setUsername(loggedUser.getUsername());
                 loginResponse.setEmail(loggedUser.getEmail());
                 loginResponse.setFirstName(loggedUser.getFirstName());
                 loginResponse.setLastName(loggedUser.getLastName());
@@ -110,9 +111,14 @@ public class UserServiceImpl implements UserService {
         response.setResponseMessage(LocaleHandler.getMessage(ResponseCodes.FAILED));
         try {
 
-            if (userRepository.existsByUsername(request.getEmail())) {
+            if (userRepository.existsByEmail(request.getEmail())) {
                 response.setResponseCode(ResponseCodes.USER_EXISTS);
                 response.setResponseMessage(LocaleHandler.getMessage(ResponseCodes.USER_EXISTS));
+                return response;
+            }
+            if (userRepository.existsByUsername(request.getUsername())) {
+                response.setResponseCode(ResponseCodes.USERNAME_EXISTS);
+                response.setResponseMessage(LocaleHandler.getMessage(ResponseCodes.USERNAME_EXISTS));
                 return response;
             }
 

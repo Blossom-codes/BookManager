@@ -31,7 +31,7 @@ public class Book {
     @Column(name = "published_date")
     private LocalDateTime publishedDate;
 
-    private boolean available = true;
+    private Boolean available = true;
 
 
 }

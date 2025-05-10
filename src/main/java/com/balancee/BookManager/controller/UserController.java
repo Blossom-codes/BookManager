@@ -25,7 +25,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/users")
 @RequiredArgsConstructor
 @Validated
-public class UserController extends BaseController{
+public class UserController{
 
     private final UserService userService;
 
@@ -40,7 +40,7 @@ public class UserController extends BaseController{
             @ApiResponse(responseCode = "400", description = "Invalid login request"),
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
-    @PostMapping("/login")
+    @PostMapping("/auth/login")
     public ResponseEntity<ResponseDto> login(@RequestBody LoginRequest loginRequest) {
         ResponseDto response = new ResponseDto();
         response.setResponseCode(ResponseCodes.ERROR);
@@ -62,18 +62,18 @@ public class UserController extends BaseController{
             description = "This endpoint allows users to register by providing their details."
     )
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "201", description = "User registered successfully",
+            @ApiResponse(responseCode = "200", description = "User registered successfully",
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = ResponseDto.class))),
             @ApiResponse(responseCode = "400", description = "Invalid input or registration failure",
                     content = @Content(mediaType = "application/json"))
     })
-    @PostMapping("/register")
+    @PostMapping("/auth/register")
     public ResponseEntity<ResponseDto> registerUser(@Valid @RequestBody UserRequestDto request) {
         ResponseDto response = new ResponseDto();
         try {
             response = userService.register(request);
-            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+            return ResponseEntity.ok(response);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(response);
