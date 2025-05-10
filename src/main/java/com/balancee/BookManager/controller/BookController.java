@@ -10,6 +10,7 @@ import com.balancee.BookManager.service.UserService;
 import com.balancee.BookManager.utils.LocaleHandler;
 import com.balancee.BookManager.utils.LoggingUtils;
 import com.balancee.BookManager.utils.ResponseCodes;
+import com.balancee.BookManager.utils.Roles;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -27,6 +28,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/books")
@@ -59,10 +61,10 @@ public class BookController extends BaseController {
             LoggingUtils.DebugInfo("Saving a new book - Title: " + bookRequest.getTitle());
 
             userInfo = this.validateToken(request);
-            if (userInfo == null) {
-                LoggingUtils.DebugInfo("An error occurred: Invalid token");
-                responseDto.setResponseCode(ResponseCodes.INVALID_TOKEN);
-                responseDto.setResponseMessage(LocaleHandler.getMessage(ResponseCodes.INVALID_TOKEN));
+            if (userInfo == null || userInfo.getAuthorities().equalsIgnoreCase(Roles.ROLE_USER.name())) {
+                LoggingUtils.DebugInfo("An error occurred: unauthorized access");
+                responseDto.setResponseCode(ResponseCodes.USER_NOT_AUTHORIZED);
+                responseDto.setResponseMessage(LocaleHandler.getMessage(ResponseCodes.USER_NOT_AUTHORIZED));
                 return ResponseEntity.badRequest().body(responseDto);
             }
 
@@ -102,6 +104,81 @@ public class BookController extends BaseController {
         } catch (Exception e) {
             LoggingUtils.DebugInfo("Error occurred during fetching of books: " + e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(bookList);
+        }
+    }
+    @Operation(
+            summary = "Update a book",
+            description = "Update details of a book"
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Update was successful",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ResponseDto.class))),
+            @ApiResponse(responseCode = "400", description = "Bad request"),
+            @ApiResponse(responseCode = "500", description = "Internal server error")
+    })
+    @PutMapping("/update/{id}")
+    public ResponseEntity<?> updateBook(HttpServletRequest request, HttpServletResponse response, @PathVariable UUID id, @RequestBody @Valid BookRequest bookRequest) {
+        ResponseDto responseDto = new ResponseDto();
+        responseDto.setResponseCode(ResponseCodes.ERROR);
+        responseDto.setResponseMessage(LocaleHandler.getMessage(ResponseCodes.ERROR));
+
+        UserInfo userInfo = new UserInfo();
+        try {
+            LoggingUtils.DebugInfo("Updating a book - id: "+id +"-"+ bookRequest.getTitle());
+
+            userInfo = this.validateToken(request);
+            if (userInfo == null || userInfo.getAuthorities().equalsIgnoreCase(Roles.ROLE_USER.name())) {
+                LoggingUtils.DebugInfo("An error occurred: unauthorized access");
+                responseDto.setResponseCode(ResponseCodes.USER_NOT_AUTHORIZED);
+                responseDto.setResponseMessage(LocaleHandler.getMessage(ResponseCodes.USER_NOT_AUTHORIZED));
+                return ResponseEntity.badRequest().body(responseDto);
+            }
+
+
+            responseDto = bookService.update(id,bookRequest);
+            return ResponseEntity.ok(responseDto);
+        } catch (Exception e) {
+            LoggingUtils.DebugInfo("Error occurred during updating the book: " + e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(responseDto);
+        }
+    }
+
+    @Operation(
+            summary = "Delete a book",
+            description = "Update details of a book"
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Delete was successful",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ResponseDto.class))),
+            @ApiResponse(responseCode = "400", description = "Bad request"),
+            @ApiResponse(responseCode = "500", description = "Internal server error")
+    })
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<?> deleteBook(HttpServletRequest request, HttpServletResponse response, @PathVariable UUID id) {
+        ResponseDto responseDto = new ResponseDto();
+        responseDto.setResponseCode(ResponseCodes.ERROR);
+        responseDto.setResponseMessage(LocaleHandler.getMessage(ResponseCodes.ERROR));
+
+        UserInfo userInfo = new UserInfo();
+        try {
+            LoggingUtils.DebugInfo("Deleting a book - id: "+id);
+
+            userInfo = this.validateToken(request);
+            if (userInfo == null || userInfo.getAuthorities().equalsIgnoreCase(Roles.ROLE_USER.name())) {
+                LoggingUtils.DebugInfo("An error occurred: unauthorized access");
+                responseDto.setResponseCode(ResponseCodes.USER_NOT_AUTHORIZED);
+                responseDto.setResponseMessage(LocaleHandler.getMessage(ResponseCodes.USER_NOT_AUTHORIZED));
+                return ResponseEntity.badRequest().body(responseDto);
+            }
+
+
+            responseDto = bookService.delete(id);
+            return ResponseEntity.ok(responseDto);
+        } catch (Exception e) {
+            LoggingUtils.DebugInfo("Error occurred during updating the book: " + e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(responseDto);
         }
     }
 }

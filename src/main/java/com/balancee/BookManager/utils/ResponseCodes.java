@@ -10,6 +10,7 @@ public class ResponseCodes {
     public static final String REGISTER_SUCCESS = "REGISTER.SUCCESS";
     public static final String LOGIN_SUCCESS = "LOGIN.SUCCESS";
     public static final String  INVALID_TOKEN = "EC004";
+    public static final String  USER_NOT_AUTHORIZED = "E40";
 
 
 }

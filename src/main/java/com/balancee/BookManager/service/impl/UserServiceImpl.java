@@ -57,7 +57,7 @@ public class UserServiceImpl implements UserService {
             if (user.isPresent()) {
                 User loggedUser = user.get();
                 claims.put("id", loggedUser.getId());
-                claims.put("authorities", List.of(loggedUser.getAuthorities()));
+                claims.put("authorities", loggedUser.getAuthorities());
                 claims.put("email", loggedUser.getEmail());
                 claims.put("username", loggedUser.getUsername());
                 claims.put("fullName", loggedUser.getFirstName() + " " + loggedUser.getLastName());

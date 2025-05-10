@@ -23,6 +23,8 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -102,6 +104,67 @@ public class BookServiceImpl implements BookService {
         });
 
         return responsePage;
+    }
+
+    @Override
+    public ResponseDto update(UUID id, BookRequest bookRequest) {
+        ResponseDto response = new ResponseDto();
+        response.setResponseCode(ResponseCodes.ERROR);
+        response.setResponseMessage(LocaleHandler.getMessage(ResponseCodes.ERROR));
+
+        try {
+            Optional<Book> optionalBook = bookRepository.findById(id);
+            if (optionalBook.isEmpty()) {
+                LoggingUtils.DebugInfo("Book not found for id: " + id);
+                return response;
+            }
+
+            Book book = optionalBook.get();
+            book.setTitle(bookRequest.getTitle());
+            book.setAuthor(bookRequest.getAuthor());
+
+            if (bookRequest.getPublishedDate() != null) {
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+                book.setPublishedDate(LocalDateTime.parse(bookRequest.getPublishedDate(), formatter));
+            }
+
+            if (bookRequest.getAvailable() != null) {
+                book.setAvailable(bookRequest.getAvailable());
+            }
+
+            bookRepository.save(book);
+            response.setResponseCode(ResponseCodes.SUCCESS);
+            response.setResponseMessage(LocaleHandler.getMessage(ResponseCodes.SUCCESS));
+            LoggingUtils.DebugInfo("Book updated successfully: " + id);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return response;
+    }
+
+    @Override
+    public ResponseDto delete(UUID id) {
+        ResponseDto response = new ResponseDto();
+        response.setResponseCode(ResponseCodes.FAILED);
+        response.setResponseMessage(LocaleHandler.getMessage(ResponseCodes.FAILED));
+
+        try {
+            if (!bookRepository.existsById(id)) {
+                LoggingUtils.DebugInfo("Book not found");
+                return response;
+            }
+
+            bookRepository.deleteById(id);
+            response.setResponseCode(ResponseCodes.SUCCESS);
+            response.setResponseMessage(LocaleHandler.getMessage(ResponseCodes.SUCCESS));
+
+            LoggingUtils.DebugInfo("Book deleted successfully");
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return response;
     }
 
 }
