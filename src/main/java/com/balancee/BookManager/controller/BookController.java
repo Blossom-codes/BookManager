@@ -36,7 +36,6 @@ import java.util.UUID;
 @Validated
 public class BookController extends BaseController {
 
-    private final UserService userService;
     private final BookService bookService;
 
     @Operation(
@@ -48,6 +47,7 @@ public class BookController extends BaseController {
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = ResponseDto.class))),
             @ApiResponse(responseCode = "400", description = "Bad request"),
+            @ApiResponse(responseCode = "403", description = "Forbidden"),
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     @PostMapping("/save")
@@ -61,12 +61,13 @@ public class BookController extends BaseController {
             LoggingUtils.DebugInfo("Saving a new book - Title: " + bookRequest.getTitle());
 
             userInfo = this.validateToken(request);
-            if (userInfo == null || userInfo.getAuthorities().equalsIgnoreCase(Roles.ROLE_USER.name())) {
+            if (userInfo == null || !userInfo.getAuthorities().contains(Roles.ROLE_ADMIN.name())) {
                 LoggingUtils.DebugInfo("An error occurred: unauthorized access");
                 responseDto.setResponseCode(ResponseCodes.USER_NOT_AUTHORIZED);
                 responseDto.setResponseMessage(LocaleHandler.getMessage(ResponseCodes.USER_NOT_AUTHORIZED));
-                return ResponseEntity.badRequest().body(responseDto);
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(responseDto);
             }
+
 
 
             responseDto = bookService.save(bookRequest);
@@ -115,6 +116,7 @@ public class BookController extends BaseController {
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = ResponseDto.class))),
             @ApiResponse(responseCode = "400", description = "Bad request"),
+            @ApiResponse(responseCode = "403", description = "Forbidden"),
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     @PutMapping("/update/{id}")
@@ -128,12 +130,13 @@ public class BookController extends BaseController {
             LoggingUtils.DebugInfo("Updating a book - id: "+id +"-"+ bookRequest.getTitle());
 
             userInfo = this.validateToken(request);
-            if (userInfo == null || userInfo.getAuthorities().equalsIgnoreCase(Roles.ROLE_USER.name())) {
+            if (userInfo == null || !userInfo.getAuthorities().contains(Roles.ROLE_ADMIN.name())) {
                 LoggingUtils.DebugInfo("An error occurred: unauthorized access");
                 responseDto.setResponseCode(ResponseCodes.USER_NOT_AUTHORIZED);
                 responseDto.setResponseMessage(LocaleHandler.getMessage(ResponseCodes.USER_NOT_AUTHORIZED));
-                return ResponseEntity.badRequest().body(responseDto);
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(responseDto);
             }
+
 
 
             responseDto = bookService.update(id,bookRequest);
@@ -153,6 +156,7 @@ public class BookController extends BaseController {
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = ResponseDto.class))),
             @ApiResponse(responseCode = "400", description = "Bad request"),
+            @ApiResponse(responseCode = "403", description = "Forbidden"),
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     @DeleteMapping("/delete/{id}")
@@ -166,12 +170,13 @@ public class BookController extends BaseController {
             LoggingUtils.DebugInfo("Deleting a book - id: "+id);
 
             userInfo = this.validateToken(request);
-            if (userInfo == null || userInfo.getAuthorities().equalsIgnoreCase(Roles.ROLE_USER.name())) {
+            if (userInfo == null || !userInfo.getAuthorities().contains(Roles.ROLE_ADMIN.name())) {
                 LoggingUtils.DebugInfo("An error occurred: unauthorized access");
                 responseDto.setResponseCode(ResponseCodes.USER_NOT_AUTHORIZED);
                 responseDto.setResponseMessage(LocaleHandler.getMessage(ResponseCodes.USER_NOT_AUTHORIZED));
-                return ResponseEntity.badRequest().body(responseDto);
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(responseDto);
             }
+
 
 
             responseDto = bookService.delete(id);
