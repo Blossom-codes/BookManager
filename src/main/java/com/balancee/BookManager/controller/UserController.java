@@ -83,11 +83,11 @@ public class UserController{
     }
 
     @Operation(
-            summary = "Registers a new user",
-            description = "This endpoint allows users to register by providing their details."
+            summary = "Registers a new user as admin",
+            description = "This endpoint allows users to register as admins by providing their details."
     )
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "User registered successfully",
+            @ApiResponse(responseCode = "200", description = "Admin registered successfully",
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = ResponseDto.class))),
             @ApiResponse(responseCode = "400", description = "Invalid input or registration failure",
@@ -106,14 +106,14 @@ public class UserController{
     }
 
     @Operation(
-            summary = "Make user an admin",
+            summary = "Activate admin account",
             description = ""
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "User made an admin successfully",
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = ResponseDto.class))),
-            @ApiResponse(responseCode = "400", description = "Invalid input or activate failure",
+            @ApiResponse(responseCode = "400", description = "Invalid input or activation failure",
                     content = @Content(mediaType = "application/json"))
     })
     @GetMapping("/auth/register/admin/activate")
