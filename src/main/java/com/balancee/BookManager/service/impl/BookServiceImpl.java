@@ -34,7 +34,7 @@ public class BookServiceImpl implements BookService {
 
     @Override
     public ResponseDto save(BookRequest request) {
-        var response = new ResponseDto();
+        ResponseDto response = new ResponseDto();
         response.setResponseCode(ResponseCodes.ERROR);
         response.setResponseMessage(LocaleHandler.getMessage(ResponseCodes.ERROR));
 
@@ -42,7 +42,7 @@ public class BookServiceImpl implements BookService {
             if (request == null) {
                 throw new RuntimeException("An error occurred, request to save book is null");
             }
-            var newBook = new Book();
+            Book newBook = new Book();
             newBook.setTitle(request.getTitle());
             newBook.setAuthor(request.getAuthor());
             if (request.getPublishedDate() != null && !request.getPublishedDate().isEmpty()) {

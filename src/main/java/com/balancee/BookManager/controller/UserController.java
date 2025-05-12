@@ -21,6 +21,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.UUID;
+
 @RestController
 @RequestMapping("/users")
 @RequiredArgsConstructor
@@ -72,11 +74,56 @@ public class UserController{
     public ResponseEntity<ResponseDto> registerUser(@Valid @RequestBody UserRequestDto request) {
         ResponseDto response = new ResponseDto();
         try {
-            response = userService.register(request);
+            response = userService.register(request, false);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(response);
+        }
+    }
+
+    @Operation(
+            summary = "Registers a new user",
+            description = "This endpoint allows users to register by providing their details."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "User registered successfully",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ResponseDto.class))),
+            @ApiResponse(responseCode = "400", description = "Invalid input or registration failure",
+                    content = @Content(mediaType = "application/json"))
+    })
+    @PostMapping("/auth/register/admin")
+    public ResponseEntity<ResponseDto> registerAsAdmin(@Valid @RequestBody UserRequestDto request) {
+        ResponseDto response = new ResponseDto();
+        try {
+            response = userService.register(request, true);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(response);
+        }
+    }
+
+    @Operation(
+            summary = "Make user an admin",
+            description = ""
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "User made an admin successfully",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ResponseDto.class))),
+            @ApiResponse(responseCode = "400", description = "Invalid input or activate failure",
+                    content = @Content(mediaType = "application/json"))
+    })
+    @GetMapping("/auth/register/admin/activate")
+    public ResponseEntity<?> makeAdmin(@RequestParam("id") UUID id) {
+        try {
+            userService.makeAdmin(id);
+            return ResponseEntity.status(HttpStatus.OK).build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .build();
         }
     }
 

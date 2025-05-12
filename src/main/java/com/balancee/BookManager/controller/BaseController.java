@@ -7,13 +7,15 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 
+import java.util.UUID;
+
 @Controller
 public class BaseController {
 
     @Autowired
     private JwtUtil jwtUtil;
 
-    protected UserInfo validateToken(HttpServletRequest request) {
+    public UserInfo validateToken(HttpServletRequest request) {
         UserInfo userInfo = new UserInfo();
         try {
             String token = request.getHeader("Authorization");
@@ -25,7 +27,7 @@ public class BaseController {
 
             Claims claims = jwtUtil.extractAllClaims(token);
 
-            userInfo.setId(Long.valueOf(claims.get("id").toString()));
+            userInfo.setId(UUID.fromString(claims.get("id").toString()));
             userInfo.setAuthorities(claims.get("authorities").toString());
             userInfo.setEmail(claims.get("email").toString());
             userInfo.setUsername(claims.get("username").toString());

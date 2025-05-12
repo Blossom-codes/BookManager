@@ -7,9 +7,9 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class ResponseDto {
-    private String responseCode;
-    private String responseMessage;
-    private Object errorMessage;
-    private Object info;
+public class EmailDto {
+    private String recipient;
+    private String message;
+    private String subject;
+    private String attachment;
 }

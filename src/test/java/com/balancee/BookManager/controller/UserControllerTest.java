@@ -66,7 +66,7 @@ class UserControllerTest {
         expectedResponse.setResponseCode(ResponseCodes.SUCCESS);
         expectedResponse.setResponseMessage("User registered successfully");
 
-        when(userService.register(request)).thenReturn(expectedResponse);
+        when(userService.register(request,false)).thenReturn(expectedResponse);
 
         // Act
         ResponseEntity<ResponseDto> response = userController.registerUser(request);
@@ -74,7 +74,7 @@ class UserControllerTest {
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(expectedResponse, response.getBody());
-        verify(userService).register(request);
+        verify(userService).register(request,false);
     }
 
     @Test
@@ -100,7 +100,7 @@ class UserControllerTest {
         request.setUsername("janedoe");
         request.setPassword("Invalid");
 
-        when(userService.register(request)).thenThrow(new RuntimeException("DB error"));
+        when(userService.register(request, false)).thenThrow(new RuntimeException("DB error"));
 
         ResponseEntity<ResponseDto> response = userController.registerUser(request);
 
