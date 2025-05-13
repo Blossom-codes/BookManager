@@ -3,6 +3,7 @@ package com.balancee.BookManager.service;
 import com.balancee.BookManager.dto.LoginRequest;
 import com.balancee.BookManager.dto.LoginResponse;
 import com.balancee.BookManager.dto.ResponseDto;
+import com.balancee.BookManager.dto.user.EditRequestDto;
 import com.balancee.BookManager.dto.user.UserInfo;
 import com.balancee.BookManager.dto.user.UserRequestDto;
 import jakarta.servlet.http.HttpServletRequest;
@@ -14,4 +15,5 @@ public interface UserService {
     ResponseDto register(UserRequestDto request, boolean admin);
     void makeAdmin(UUID id);
     UserInfo validateToken(HttpServletRequest request);
+    ResponseDto updateProfile(EditRequestDto requestDto, UUID uuid);
 }

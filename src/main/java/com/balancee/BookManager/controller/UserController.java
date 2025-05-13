@@ -3,17 +3,21 @@ package com.balancee.BookManager.controller;
 
 import com.balancee.BookManager.dto.LoginRequest;
 import com.balancee.BookManager.dto.ResponseDto;
+import com.balancee.BookManager.dto.user.EditRequestDto;
+import com.balancee.BookManager.dto.user.UserInfo;
 import com.balancee.BookManager.dto.user.UserRequestDto;
 import com.balancee.BookManager.service.UserService;
 import com.balancee.BookManager.utils.LocaleHandler;
 import com.balancee.BookManager.utils.LoggingUtils;
 import com.balancee.BookManager.utils.ResponseCodes;
+import com.balancee.BookManager.utils.Roles;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -27,7 +31,7 @@ import java.util.UUID;
 @RequestMapping("/users")
 @RequiredArgsConstructor
 @Validated
-public class UserController{
+public class UserController extends BaseController{
 
     private final UserService userService;
 
@@ -98,6 +102,41 @@ public class UserController{
         ResponseDto response = new ResponseDto();
         try {
             response = userService.register(request, true);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(response);
+        }
+    }
+
+    @Operation(
+            summary = "Update user details",
+            description = "This endpoint allows users to update their details."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "details updated successfully",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ResponseDto.class))),
+            @ApiResponse(responseCode = "400", description = "Invalid input or update failure",
+                    content = @Content(mediaType = "application/json"))
+    })
+    @PutMapping("/update")
+    public ResponseEntity<ResponseDto> update(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse,
+                                              @Valid @RequestBody EditRequestDto request) {
+        ResponseDto response = new ResponseDto();
+        response.setResponseCode(ResponseCodes.ERROR);
+        response.setResponseMessage(LocaleHandler.getMessage(ResponseCodes.ERROR));
+
+        UserInfo userInfo = new UserInfo();
+        try {
+            userInfo = this.validateToken(httpServletRequest);
+            if (userInfo == null) {
+                LoggingUtils.DebugInfo("An error occurred: unauthorized access");
+                response.setResponseCode(ResponseCodes.USER_NOT_AUTHORIZED);
+                response.setResponseMessage(LocaleHandler.getMessage(ResponseCodes.USER_NOT_AUTHORIZED));
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
+            }
+            response = userService.updateProfile(request, userInfo.getId());
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)

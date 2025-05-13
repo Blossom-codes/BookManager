@@ -2,20 +2,27 @@ package com.balancee.BookManager.controller;
 
 import com.balancee.BookManager.dto.LoginRequest;
 import com.balancee.BookManager.dto.ResponseDto;
+import com.balancee.BookManager.dto.user.EditRequestDto;
+import com.balancee.BookManager.dto.user.UserInfo;
 import com.balancee.BookManager.dto.user.UserRequestDto;
 import com.balancee.BookManager.service.UserService;
+import com.balancee.BookManager.utils.LocaleHandler;
 import com.balancee.BookManager.utils.ResponseCodes;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
+import java.util.UUID;
+
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 class UserControllerTest {
 
@@ -24,6 +31,14 @@ class UserControllerTest {
 
     @Mock
     private UserService userService;
+
+
+    @Mock
+    private HttpServletRequest httpServletRequest;
+
+    @Mock
+    private HttpServletResponse httpServletResponse;
+
 
     @BeforeEach
     void setup() {
@@ -39,7 +54,7 @@ class UserControllerTest {
 
         ResponseDto expectedResponse = new ResponseDto();
         expectedResponse.setResponseCode(ResponseCodes.SUCCESS);
-        expectedResponse.setResponseMessage("Login successful");
+        expectedResponse.setResponseMessage(LocaleHandler.getMessage(ResponseCodes.SUCCESS));
 
         when(userService.login(request)).thenReturn(expectedResponse);
 
@@ -64,7 +79,7 @@ class UserControllerTest {
 
         ResponseDto expectedResponse = new ResponseDto();
         expectedResponse.setResponseCode(ResponseCodes.SUCCESS);
-        expectedResponse.setResponseMessage("User registered successfully");
+        expectedResponse.setResponseMessage(LocaleHandler.getMessage(ResponseCodes.REGISTER_SUCCESS));
 
         when(userService.register(request,false)).thenReturn(expectedResponse);
 
@@ -76,6 +91,40 @@ class UserControllerTest {
         assertEquals(expectedResponse, response.getBody());
         verify(userService).register(request,false);
     }
+
+    @Test
+    void testUpdateUser_Success() {
+        // Arrange
+        EditRequestDto request = new EditRequestDto();
+        request.setFirstName("John");
+        request.setLastName("Doe");
+        request.setUsername("doeJohn");
+        request.setPassword("!!Password123");
+
+        UUID userId = UUID.randomUUID();
+
+        ResponseDto expectedResponse = new ResponseDto();
+        expectedResponse.setResponseCode(ResponseCodes.SUCCESS);
+        expectedResponse.setResponseMessage(LocaleHandler.getMessage(ResponseCodes.UPDATE_SUCCESS));
+
+        // Spy the controller to mock validateToken
+        UserController controllerSpy = Mockito.spy(userController);
+
+        UserInfo mockUserInfo = new UserInfo();
+        mockUserInfo.setId(userId); // assuming UserInfo has an id field
+
+        doReturn(mockUserInfo).when(controllerSpy).validateToken(httpServletRequest);
+        when(userService.updateProfile(request, userId)).thenReturn(expectedResponse);
+
+        // Act
+        ResponseEntity<ResponseDto> response = controllerSpy.update(httpServletRequest, httpServletResponse, request);
+
+        // Assert
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(expectedResponse, response.getBody());
+        verify(userService).updateProfile(request, userId);
+    }
+
 
     @Test
     void testLogin_Exception() {

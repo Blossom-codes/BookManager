@@ -2,6 +2,7 @@ package com.balancee.BookManager.service.impl;
 
 import com.balancee.BookManager.dto.EmailDto;
 import com.balancee.BookManager.dto.LoginResponse;
+import com.balancee.BookManager.dto.user.EditRequestDto;
 import com.balancee.BookManager.dto.user.UserInfo;
 import com.balancee.BookManager.repository.UserRepository;
 import com.balancee.BookManager.dto.LoginRequest;
@@ -97,11 +98,11 @@ public class UserServiceImpl implements UserService {
             responseDto.setResponseMessage(LocaleHandler.getMessage(ResponseCodes.SUCCESS));
             responseDto.setInfo(loginResponse);
         } catch (BadCredentialsException e) {
-            responseDto.setResponseCode(ResponseCodes.SYSTEM_ERROR);
-            responseDto.setResponseMessage("Invalid email or password");
+            responseDto.setResponseCode(ResponseCodes.FAILED);
+            responseDto.setResponseMessage(LocaleHandler.getMessage(ResponseCodes.BAD_CREDENTIALS));
         } catch (UsernameNotFoundException e) {
             responseDto.setResponseCode(ResponseCodes.SYSTEM_ERROR);
-            responseDto.setResponseMessage("User not found");
+            responseDto.setResponseMessage(LocaleHandler.getMessage(ResponseCodes.USER_NOT_FOUND));
         } catch (Exception ex) {
             ex.printStackTrace();
             responseDto.setResponseCode(ResponseCodes.SYSTEM_ERROR);
@@ -165,18 +166,17 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void makeAdmin(UUID id) {
-        LoggingUtils.DebugInfo("Trying to make user with id: "+id+" an admin");
+        LoggingUtils.DebugInfo("Trying to make user with id: " + id + " an admin");
         try {
             if (id == null) {
                 throw new RuntimeException("An error occurred: Invalid User Id");
             }
             Optional<User> user = userRepository.findById(id);
-            if (user.isPresent())
-            {
+            if (user.isPresent()) {
                 User admin = user.get();
                 admin.setAuthorities(Roles.ROLE_ADMIN.name());
                 userRepository.save(admin);
-                LoggingUtils.DebugInfo("User with id: "+id+" is now an admin");
+                LoggingUtils.DebugInfo("User with id: " + id + " is now an admin");
 
             }
 
@@ -264,6 +264,44 @@ public class UserServiceImpl implements UserService {
             throw new RuntimeException("An error has occurred: " + ex.getMessage());
         }
         return userInfo;
+    }
+
+    @Override
+    public ResponseDto updateProfile(EditRequestDto requestDto, UUID id) {
+        ResponseDto response = new ResponseDto();
+        response.setResponseMessage(ResponseCodes.FAILED);
+        response.setResponseMessage(LocaleHandler.getMessage(ResponseCodes.FAILED));
+
+        try {
+            Optional<User> optionalUser = userRepository.findById(id);
+
+            if (optionalUser.isEmpty()) {
+                LoggingUtils.DebugInfo("User not found for id: " + id);
+                return response;
+            }
+
+            User user = optionalUser.get();
+
+            if (!StringUtils.isNullOrEmpty(requestDto.getFirstName())) {
+                user.setFirstName(requestDto.getFirstName());
+            }
+            if (!StringUtils.isNullOrEmpty(requestDto.getLastName())) {
+                user.setLastName(requestDto.getLastName());
+            }
+            if (!StringUtils.isNullOrEmpty(requestDto.getUsername())) {
+                user.setUsername(requestDto.getUsername());
+            }
+            if (!StringUtils.isNullOrEmpty(requestDto.getPassword())) {
+                user.setPassword(passwordEncoder.encode(requestDto.getPassword()));
+            }
+            userRepository.save(user);
+            response.setResponseCode(ResponseCodes.SUCCESS);
+            response.setResponseMessage(LocaleHandler.getMessage(ResponseCodes.UPDATE_SUCCESS));
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+
+        return response;
     }
 
 }
